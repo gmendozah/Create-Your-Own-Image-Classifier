@@ -4,14 +4,13 @@ import numpy as np
 from PIL import Image
 import torch
 import torchvision
-from torchvision import datasets, transforms, models
 import torch.nn.functional as F
 
 
 # simple example
-# python train.py "flowers"
+# python predict.py flowers/test/58/image_02663.jpg train_checkpoint.pth --gpu
 # complete example
-# python train.py "flowers" --save_dir "train_checkpoint.pth" --arch "vgg16" --learning_rate 0.002 --hidden_units 512  --epochs 2 --gpu
+# python predict.py flowers/test/58/image_02663.jpg train_checkpoint.pth --top_k 3 --category_names cat_to_name.json --gpu
 
 
 def parse_args():
@@ -69,8 +68,12 @@ def process_image(image):
     return im
 
 
-def predict(image_path, model, topk):
-    model.to('cuda')
+def predict(image_path, model, top_k, gpu):
+    if gpu:
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+    model.to(device)
 
     image = Image.open(image_path)
     image = process_image(image)
@@ -83,12 +86,18 @@ def predict(image_path, model, topk):
 
     p = F.softmax(output.data, dim=1)
 
-    top_p = np.array(p.topk(topk)[0][0])
+    top_p = np.array(p.topk(top_k)[0][0])
 
     index_to_class = {val: key for key, val in model.class_to_idx.items()}
-    top_classes = [np.int(index_to_class[each]) for each in np.array(p.topk(topk)[1][0])]
+    top_classes = [np.int(index_to_class[each]) for each in np.array(p.topk(top_k)[1][0])]
 
-    return top_p, top_classes
+    return top_p, top_classes, device
+
+
+def load_names(category_names_file):
+    with open(category_names_file) as file:
+        category_names = json.load(file)
+    return category_names
 
 
 def main():
@@ -101,30 +110,19 @@ def main():
 
     model = load_checkpoint(checkpoint)
 
-    # # TODO: Display an image along with the top 5 classes
-    #
-    # path = 'flowers/test/58/image_02663.jpg'
-    #
-    # top_p, classes = predict(path, loaded_model)
-    # max_index = classes[0]
-    #
-    # fig = plt.figure(figsize=(6, 6))
-    # axis_1 = plt.subplot2grid((15, 9), (0, 0), colspan=9, rowspan=9)
-    # axis_2 = plt.subplot2grid((15, 9), (9, 2), colspan=5, rowspan=5)
-    #
-    # image = Image.open(path)
-    # axis_1.axis('off')
-    # axis_1.set_title(cat_to_name[str(max_index)])
-    # axis_1.imshow(image)
-    # labels = [cat_to_name[str(index)] for index in classes]
-    # y_pos = np.arange(5)
-    # axis_2.set_yticks(y_pos)
-    # axis_2.set_yticklabels(labels)
-    # axis_2.invert_yaxis()  # probabilities read top-to-bottom
-    # axis_2.set_xlabel('Probability')
-    # axis_2.barh(y_pos, top_p, xerr=0, align='center')
-    #
-    # plt.show()
+    top_p, classes, device = predict(image_path, model, top_k, gpu)
+
+    category_names = load_names(category_names)
+
+    labels = [category_names[str(index)] for index in classes]
+
+    print(f"Results for your File: {image_path}")
+    print(labels)
+    print(top_p)
+    print()
+
+    for i in range(len(labels)):
+        print("{} - {} with a probability of {}".format((i+1), labels[i], top_p[i]))
 
 
 if __name__ == "__main__":
