@@ -2,14 +2,13 @@ import argparse
 import torch
 from torch import nn
 from torch import optim
-import torchvision
 from torchvision import datasets, transforms, models
 from collections import OrderedDict
 import time
 import json
 
 # simple example
-# python train.py "flowers" --gpu
+# python train.py "flowers" --arch "vgg16" --gpu
 # complete example
 # python train.py "flowers" --save_dir "train_checkpoint.pth" --arch "vgg16" --learning_rate 0.002 --hidden_units 512  --epochs 2 --gpu
 
