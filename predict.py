@@ -29,6 +29,8 @@ def load_checkpoint(filepath):
     _model.input_size = checkpoint['input_size']
     _model.output_size = checkpoint['output_size']
     _model.learning_rate = checkpoint['learning_rate']
+    _model.hidden_units = checkpoint['hidden_units']
+    _model.learning_rate = checkpoint['learning_rate']
     _model.classifier = checkpoint['classifier']
     _model.epochs = checkpoint['epochs']
     _model.load_state_dict(checkpoint['state_dict'])
