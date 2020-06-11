@@ -12,7 +12,7 @@ This project requires **Python 3.6.0** and the following Python libraries instal
 - [PyTorch](https://pytorch.org/)
 
 ## Run
-In a terminal or command window, navigate to the top-level project directory `intro-to-machine-learning-with-pytorch/` (that contains this README) and run the following command:
+In a terminal or command window, navigate to the top-level project directory `Create-Your-Own-Image-Classifier/` (that contains this README) and run the following command:
 ```bash
 jupyter notebook Image-Classifier-Project.ipynb
 ```
